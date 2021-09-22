@@ -1,6 +1,6 @@
 <template>
-  <div class="record">
-    <h1>CPBL record</h1>
+  <div class="record"> 
+    <router-link to="/">Home</router-link>
     <ScoreBoard />
   </div>
 </template>
