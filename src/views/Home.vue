@@ -6,7 +6,7 @@
         <router-link to="/record">第1場 中信兄弟 vs 統一7-ELEVEn獅</router-link>
       </li>
       <li class="list-group-item">
-        <router-link to="/record">第202場 統一7-ELEVEn獅 vs 中信兄弟</router-link>
+        <router-link to="/record202">第202場 統一7-ELEVEn獅 vs 中信兄弟</router-link>
       </li>
     </ul>
   </div>
