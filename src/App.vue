@@ -5,10 +5,3 @@
   <hr>
   <router-view/>
 </template>
-
-<script>
-// 載入 bootstrap css
-// import 'bootstrap/dist/css/bootstrap.min.css'
-// 載入 bootstrap js
-// import 'bootstrap'
-</script>
