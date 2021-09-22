@@ -48,6 +48,7 @@
 
 <script>
 import dataAPI from '../apis/data'
+
 export default {
   name: 'ScoreBoard',
   data() {
