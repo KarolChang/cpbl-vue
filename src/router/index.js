@@ -8,7 +8,7 @@ const routes = [
     component: Home
   },
   {
-    path: '/record',
+    path: '/record/:gameSno/:kindCode/:year',
     name: 'Record',
     component: () => import('../views/Record.vue')
   },

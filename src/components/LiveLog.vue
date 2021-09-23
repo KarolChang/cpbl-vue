@@ -18,29 +18,37 @@ export default {
     }
   },
   methods: {
-   async fetchLiveLog() {
+   async fetchLiveLog(infos) {
       try {
-        const { data } = await dataAPI.liveLog()
-        console.log(data)
+        const gameInfos = {
+          ...infos,
+          dataType: 'LiveLogJson'
+        }
+
+        const { data } = await dataAPI.getData(gameInfos)
+        // console.log('data', data)
         let listedDatas = []
         let tempDatas = []
-        let lastPlayer = ''
+        let lastPlayer = data['data'][0].HitterName
 
         // 將資料轉換成依打席區分
-        data.forEach(item => {
-          if(lastPlayer) {
-            if(item.HitterName === lastPlayer) {
-              tempDatas.push(item)
-            } else {
-              listedDatas.push(tempDatas)
-              tempDatas = [item]
-            }
-          } else {
+        data['data'].forEach(item => {
+          if(item.HitterName === lastPlayer) {
             tempDatas.push(item)
+          } else {
+            listedDatas.push(tempDatas)
+            tempDatas = [item]
           }
           lastPlayer = item.HitterName
         })
+        // 代表最新的打席，只是該打席還未結束
+        if(tempDatas.length) {
+          listedDatas.push(tempDatas)
+        }
 
+        console.log('listedDatas', listedDatas)
+
+        // logs 放入文字敘述
         listedDatas.forEach(data => {
           const lastData = data[data.length-1]
           let log = `
@@ -49,15 +57,13 @@ export default {
           this.logs.push(log)
         })
 
-
-
       } catch(error) {
         console.error('error', error)
       }
     }
   },
   created() {
-    this.fetchLiveLog()
+    this.fetchLiveLog(this.$route.params)
   }
 }
 </script>

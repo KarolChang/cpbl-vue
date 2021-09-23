@@ -22,7 +22,7 @@
       </thead>
       <tbody>
         <tr class="table-dark" id="visiting-score" >
-          <th scope="row">中信兄弟</th>
+          <th scope="row">{{visitingTeam}}</th>
           <td 
             v-for="score in visitingScores" 
             :key="score.CreateTime">{{score}}
@@ -32,7 +32,7 @@
           <td>{{visitingErrors}}</td>
         </tr>
         <tr class="table-dark" id="home-score">
-          <th scope="row">統一獅</th>
+          <th scope="row">{{homeTeam}}</th>
           <td 
             v-for="score in homeScores" 
             :key="score.CreateTime">{{score}}
@@ -53,6 +53,8 @@ export default {
   name: 'ScoreBoard',
   data() {
     return {
+      visitingTeam: '',
+      homeTeam: '',
       visitingScores: [],
       homeScores: [],
       visitingRuns: 0,
@@ -64,17 +66,36 @@ export default {
     }
   },
   methods: {
-    async fetchScoreBoard() {
+    async fetchTeam(infos) {
       try {
-        const { data } = await dataAPI.scoreBoard()
-  
+        const gameInfos = {
+          ...infos,
+          dataType: 'CurtGameDetailJson'
+        }
+        const { data } = await dataAPI.getData(gameInfos)
+        
+        this.visitingTeam = data.data.VisitingTeamName
+        this.homeTeam = data.data.HomeTeamName
+
+      } catch(error) {
+        console.error('error', error)
+      }
+    },
+    async fetchScoreBoard(infos) {
+      try {
+        const gameInfos = {
+          ...infos,
+          dataType: 'ScoreboardJson'
+        }
+        const { data } = await dataAPI.getData(gameInfos)
+        // 1. get ScoreBoard
         let visitingScoreMap = new Map()
         let homeScoreMap = new Map()
-        data.forEach(item => {
+        data['data'].forEach(item => {
           if(item.VisitingHomeType === '1') {
-            // 1. get score
+            // (1) get score
             visitingScoreMap.set(item.InningSeq, item.ScoreCnt)
-            // 2. get R,H,E
+            // (2) get R,H,E
             this.visitingRuns += item.ScoreCnt
             this.visitingHits += item.HittingCnt
             this.visitingErrors += item.ErrorCnt
@@ -90,8 +111,20 @@ export default {
         })
 
         // map to array
-        this.visitingScores = Array.from(visitingScoreMap.values()).reverse()
-        this.homeScores = Array.from(homeScoreMap.values()).reverse()
+        let visitingScoreArr = Array.from(visitingScoreMap.values()).reverse()
+        let homeScoreArr = Array.from(homeScoreMap.values()).reverse()
+
+        if(visitingScoreArr.length < 9) {
+          const count = 9 - visitingScoreArr.length
+          visitingScoreArr = visitingScoreArr.concat(Array.from({length:count}, () => ''))
+        }
+        if(homeScoreArr.length < 9) {
+          const count = 9 - homeScoreArr.length
+          homeScoreArr = homeScoreArr.concat(Array.from({length:count}, () => ''))
+        }
+
+        this.visitingScores = visitingScoreArr
+        this.homeScores = homeScoreArr
 
       } catch(error) {
         console.error('error', error)
@@ -99,7 +132,8 @@ export default {
     }
   },
   created() {
-    this.fetchScoreBoard()
+    this.fetchTeam(this.$route.params)
+    this.fetchScoreBoard(this.$route.params)
   }
 }
 </script>

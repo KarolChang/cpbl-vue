@@ -10,16 +10,7 @@ import { apiHelper } from './helper'
 // }
 
 export default {
-  liveLog() {
-    return apiHelper.get(`/livelog`)
-  },
-  scoreBoard() {
-    return apiHelper.get('/scoreboard')
-  },
-  liveLog202() {
-    return apiHelper.get(`/livelog202`)
-  },
-  scoreBoard202() {
-    return apiHelper.get('/scoreboard202')
+  getData({ gameSno, kindCode, year, dataType }) {
+    return apiHelper.get(`/record/${gameSno}/${kindCode}/${year}/${dataType}`)
   }
 }
