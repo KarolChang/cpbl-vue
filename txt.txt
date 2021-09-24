@@ -1,0 +1,39 @@
+<template>
+  <h1>各局紀錄</h1>
+  <hr>
+  <ul class="list-group">
+    <li class="list-group-item" v-for="data in listedDatas" :key="data[0][0].CreateTime">
+      <h2 class="text-success">{{data[0][0].InningSeq}}局{{data[0][0].VisitingHomeType === '1' ? '上' : '下'}}</h2>
+      <template v-for="item in data" :key="item">
+        <div class="accordion" id="accordionExample">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#' + timeStamp(data[0][0].CreateTime)" aria-expanded="true" aria-controls="collapseOne">
+                第{{data[0][0].HitterLineup}}棒 {{data[0][0].DefendStationCode}} {{data[0][0].HitterName}} {{data[0][0].ActionName}}
+              </button>
+            </h2>
+            <div class="ms-3 my-2 d-flex justify-content-start">
+              <div class="me-1" v-if="data[0][0].StrikeCnt >= 1"><i class="fas fa-circle"></i></div>
+              <div class="me-1" v-if="data[0][0].StrikeCnt >= 2"><i class="fas fa-circle"></i></div>
+              <div class="me-1" v-if="data[0][0].StrikeCnt >= 3"><i class="fas fa-circle"></i></div>
+            </div>
+            <div class="ms-3 my-2 d-flex justify-content-start">
+              <div class="me-1"><i class="far fa-circle"></i></div>
+              <div class="me-1"><i class="far fa-circle"></i></div>
+              <div class="me-1"><i class="far fa-circle"></i></div>
+              <div><i class="far fa-circle"></i></div>
+            </div>
+            <div :id="timeStamp(data[0][0].CreateTime)" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+              <div style="border-top:1px solid #8E8E8E;" class="accordion-body" v-for="i in item" :key="i.CreateTime">
+                <div class="d-flex justify-content-between">
+                  <span>{{i.Content}}</span>
+                  <span>{{i.BallCnt}}-{{i.StrikeCnt}}</span>
+                </div>        
+              </div>
+            </div>
+          </div>
+        </div> 
+      </template>
+    </li>
+  </ul>
+</template>

@@ -25,7 +25,8 @@
           <th scope="row">{{visitingTeam}}</th>
           <td 
             v-for="score in visitingScores" 
-            :key="score.CreateTime">{{score}}
+            :key="score.CreateTime">
+              <span v-if="score !== 'now'">{{score}}</span>
           </td>    
           <td>{{visitingRuns}}</td>
           <td>{{visitingHits}}</td>
@@ -35,7 +36,8 @@
           <th scope="row">{{homeTeam}}</th>
           <td 
             v-for="score in homeScores" 
-            :key="score.CreateTime">{{score}}
+            :key="score.CreateTime">
+              <span v-if="score !== 'now'">{{score}}</span>
           </td>  
           <td>{{homeRuns}}</td>
           <td>{{homeHits}}</td>
@@ -62,7 +64,8 @@ export default {
       visitingErrors: 0,
       homeRuns: 0,
       homeHits: 0,
-      homeErrors: 0
+      homeErrors: 0,
+      gameStatus: ''
     }
   },
   methods: {
@@ -76,6 +79,9 @@ export default {
         
         this.visitingTeam = data.data.VisitingTeamName
         this.homeTeam = data.data.HomeTeamName
+        
+        // 比賽：結束 or 開始
+        this.gameStatus = data.data.GameStatusChi
 
       } catch(error) {
         console.error('error', error)
@@ -91,10 +97,13 @@ export default {
         // 1. get ScoreBoard
         let visitingScoreMap = new Map()
         let homeScoreMap = new Map()
-        data['data'].forEach(item => {
+        data['data'].forEach((item, index) => {
+          // 如果最新一半局的分數是0，就先不要顯示
+          let now = (index === 0 && item.ScoreCnt === 0 && this.gameStatus !== '比賽結束') ? 1 : 0
           if(item.VisitingHomeType === '1') {
             // (1) get score
-            visitingScoreMap.set(item.InningSeq, item.ScoreCnt)
+            const score = now ? 'now' : item.ScoreCnt
+            visitingScoreMap.set(item.InningSeq, score)
             // (2) get R,H,E
             this.visitingRuns += item.ScoreCnt
             this.visitingHits += item.HittingCnt
@@ -102,7 +111,8 @@ export default {
           }
           if(item.VisitingHomeType === '2') {
             // 1. get score
-            homeScoreMap.set(item.InningSeq, item.ScoreCnt)
+            const score = now ? 'now' : item.ScoreCnt
+            homeScoreMap.set(item.InningSeq, score)
             // 2. get R,H,E
             this.homeRuns += item.ScoreCnt
             this.homeHits += item.HittingCnt

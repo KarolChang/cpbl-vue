@@ -1,6 +1,5 @@
 <template>
   <div class="record m-3"> 
-    <router-link to="/">Home</router-link>
     <ScoreBoard />
     <LiveLog />
   </div>

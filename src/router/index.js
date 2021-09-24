@@ -11,11 +11,6 @@ const routes = [
     path: '/record/:gameSno/:kindCode/:year',
     name: 'Record',
     component: () => import('../views/Record.vue')
-  },
-  {
-    path: '/record202',
-    name: 'Record202',
-    component: () => import('../views/Record202.vue')
   }
 ]
 
