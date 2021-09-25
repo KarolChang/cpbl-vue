@@ -77,10 +77,11 @@ export default {
         }
         const { data } = await dataAPI.getData(gameInfos)
         
+        // 比賽隊伍
         this.visitingTeam = data.data.VisitingTeamName
         this.homeTeam = data.data.HomeTeamName
         
-        // 比賽：結束 or 開始
+        // 比賽狀態
         this.gameStatus = data.data.GameStatusChi
 
       } catch(error) {
@@ -120,6 +121,11 @@ export default {
           }
         })
 
+        // 如果最後一局不用打，score 改成 X
+        if(this.gameStatus === '比賽結束' && this.homeRuns > this.visitingRuns) {
+          homeScoreMap.set(homeScoreMap.size, 'X')
+        }
+
         // map to array
         let visitingScoreArr = Array.from(visitingScoreMap.values()).reverse()
         let homeScoreArr = Array.from(homeScoreMap.values()).reverse()
@@ -141,9 +147,13 @@ export default {
       }
     }
   },
-  created() {
-    this.fetchTeam(this.$route.params)
-    this.fetchScoreBoard(this.$route.params)
+  async created() {
+    try {
+      await this.fetchTeam(this.$route.params)
+      await this.fetchScoreBoard(this.$route.params)
+    } catch (error) {
+      console.error('error', error)
+    }
   }
 }
 </script>
