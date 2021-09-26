@@ -2,7 +2,9 @@
   <div class="score-board">
     <!-- 計分板 -->
     <h1>計分板</h1>
-    <table class="table">
+    <img alt="visiting_logo" :src="gameInfo.visitingPicture" width="300" hright="300">
+    <img alt="Cpbl logo" src="../assets/lion.png" width="300" hright="300">
+    <table>
       <thead>
         <tr class="table-info">
           <th scope="col">#</th>
@@ -22,7 +24,7 @@
       </thead>
       <tbody>
         <tr class="table-dark" id="visiting-score" >
-          <th scope="row">{{visitingTeam}}</th>
+          <th scope="row">{{gameInfo.visitingTeam}}</th>
           <td 
             v-for="score in visitingScores" 
             :key="score.CreateTime">
@@ -33,7 +35,7 @@
           <td>{{visitingErrors}}</td>
         </tr>
         <tr class="table-dark" id="home-score">
-          <th scope="row">{{homeTeam}}</th>
+          <th scope="row">{{gameInfo.homeTeam}}</th>
           <td 
             v-for="score in homeScores" 
             :key="score.CreateTime">
@@ -53,10 +55,22 @@ import dataAPI from '../apis/data'
 
 export default {
   name: 'ScoreBoard',
+  props: {
+    gameInfo: {
+      type: Object,
+      default: () => {
+        return {
+          visitingTeam: '',
+          homeTeam: '',
+          visitingPicture: '',
+          homePicture: '',
+          gameStatus: ''
+        }
+      }
+    }
+  },
   data() {
     return {
-      visitingTeam: '',
-      homeTeam: '',
       visitingScores: [],
       homeScores: [],
       visitingRuns: 0,
@@ -69,33 +83,17 @@ export default {
     }
   },
   methods: {
-    async fetchTeam(infos) {
-      try {
-        const gameInfos = {
-          ...infos,
-          dataType: 'CurtGameDetailJson'
-        }
-        const { data } = await dataAPI.getData(gameInfos)
-        
-        // 比賽隊伍
-        this.visitingTeam = data.data.VisitingTeamName
-        this.homeTeam = data.data.HomeTeamName
-        
-        // 比賽狀態
-        this.gameStatus = data.data.GameStatusChi
-
-      } catch(error) {
-        console.error('error', error)
-      }
-    },
     async fetchScoreBoard(infos) {
+      // console.log('gamestatus', this.gameStatus)
       try {
         const gameInfos = {
           ...infos,
           dataType: 'ScoreboardJson'
         }
+
         const { data } = await dataAPI.getData(gameInfos)
-        // 1. get ScoreBoard
+
+        // 2. get ScoreBoard
         let visitingScoreMap = new Map()
         let homeScoreMap = new Map()
         data['data'].forEach((item, index) => {
@@ -120,7 +118,6 @@ export default {
             this.homeErrors += item.ErrorCnt
           }
         })
-
         // 如果最後一局不用打，score 改成 X
         if(this.gameStatus === '比賽結束' && this.homeRuns > this.visitingRuns) {
           homeScoreMap.set(homeScoreMap.size, 'X')
@@ -141,6 +138,20 @@ export default {
 
         this.visitingScores = visitingScoreArr
         this.homeScores = homeScoreArr
+
+      } catch(error) {
+        console.error('error', error)
+      }
+    },
+    async fetchTeam(infos) {
+      try {
+        const gameInfos = {
+          ...infos,
+          dataType: 'CurtGameDetailJson'
+        }
+
+        const { data } = await dataAPI.getData(gameInfos)
+        this.gameStatus = data.data.GameStatusChi
 
       } catch(error) {
         console.error('error', error)
