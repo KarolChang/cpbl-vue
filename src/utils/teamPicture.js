@@ -1,37 +1,31 @@
-// export const teamPicture = {
-//   '統一7-ELEVEn獅': '../assets/lion.png',
-//   '中信兄弟': '../assets/brother.png',
-//   '樂天桃猿': '../assets/monkey.png',
-//   '味全龍': '../assets/dragon.png',
-//   '富邦悍將': '../assets/guardian.png'
-// }
+// baseUrl
+const baseUrl = 'https://www.cpbl.com.tw'
 
-let teamPicture = {
-  '統一7-ELEVEn獅': '/img/lion.3b5fa7ec.png',
-  '中信兄弟': '/img/brother.31acade4.png',
-  '樂天桃猿': '/img/monkey.ff863570.png',
-  '味全龍': '/img/dragon.dca262ff.png',
-  '富邦悍將': '/img/guardian.864556ae.png',
-  '統一7-ELEVEn獅二軍': '/img/lion.3b5fa7ec.png',
-  '中信兄弟二軍': '/img/brother.31acade4.png',
-  '樂天桃猿二軍': '/img/monkey.ff863570.png',
-  '味全龍二軍': '/img/dragon.dca262ff.png',
-  '富邦悍將二軍': '/img/guardian.864556ae.png'
+// big pic
+let teamBigPic = {
+  '統一7-ELEVEn獅': baseUrl + '/files/atts/0L021496167521474259/logo_lions_large.png',
+  '中信兄弟': baseUrl + '/files/atts/0L021497102437737790/logo_brothers_large.png',
+  '樂天桃猿': baseUrl + '/files/atts/0L015581098468306680/logo_monkeys_large.png',
+  '味全龍': baseUrl + '/files/atts/0L021497849799849722/logo_dragon_large.png',
+  '富邦悍將': baseUrl + '/files/atts/0L021495963248506263/logo_fubon_large.png',
+  '統一7-ELEVEn獅二軍': baseUrl + '/files/atts/0L021496167521474259/logo_lions_large.png',
+  '中信兄弟二軍': baseUrl + '/files/atts/0L021497102437737790/logo_brothers_large.png',
+  '樂天桃猿二軍': baseUrl + '/files/atts/0L015581098468306680/logo_monkeys_large.png',
+  '味全龍二軍': baseUrl + '/files/atts/0L021497849799849722/logo_dragon_large.png',
+  '富邦悍將二軍': baseUrl + '/files/atts/0L021495963248506263/logo_fubon_large.png'
 }
 
-if(process.env.NODE_ENV === 'production') {
-  teamPicture = {
-    '統一7-ELEVEn獅': '/cpbl-vue/img/lion.3b5fa7ec.png',
-    '中信兄弟': '/cpbl-vue/img/brother.31acade4.png',
-    '樂天桃猿': '/cpbl-vue/img/monkey.ff863570.png',
-    '味全龍': '/cpbl-vue/img/dragon.dca262ff.png',
-    '富邦悍將': '/cpbl-vue/img/guardian.864556ae.png',
-    '統一7-ELEVEn獅二軍': '/cpbl-vue/img/lion.3b5fa7ec.png',
-    '中信兄弟二軍': '/cpbl-vue/img/brother.31acade4.png',
-    '樂天桃猿二軍': '/cpbl-vue/img/monkey.ff863570.png',
-    '味全龍二軍': '/cpbl-vue/img/dragon.dca262ff.png',
-    '富邦悍將二軍': '/cpbl-vue/img/guardian.864556ae.png'
-  }
+let teamSmallPic = {
+  '統一7-ELEVEn獅': baseUrl + '/files/atts/0L021496162893869773/logo_lions.png',
+  '中信兄弟': baseUrl + '/files/atts/0L021497108709222204/logo_brothers.png',
+  '樂天桃猿': baseUrl + '/files/atts/0L015574823122453305/logo_monkeys.png',
+  '味全龍': baseUrl + '/files/atts/0L021497845061333235/logo_dragon.png',
+  '富邦悍將': baseUrl + '/files/atts/0L021495969510091777/logo_fubon.png',
+  '統一7-ELEVEn獅二軍': baseUrl + '/files/atts/0L021496162893869773/logo_lions.png',
+  '中信兄弟二軍': baseUrl + '/files/atts/0L021497108709222204/logo_brothers.png',
+  '樂天桃猿二軍': baseUrl + '/files/atts/0L015574823122453305/logo_monkeys.png',
+  '味全龍二軍': baseUrl + '/files/atts/0L021497845061333235/logo_dragon.png',
+  '富邦悍將二軍': baseUrl + '/files/atts/0L021495969510091777/logo_fubon.png'
 }
 
-export { teamPicture }
+export { teamBigPic, teamSmallPic }

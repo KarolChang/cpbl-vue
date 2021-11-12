@@ -26,7 +26,7 @@
         <tr>
           <th scope="col" class="text-center">{{gameInfo.visitingTeam}}</th>
           <th scope="col" class="text-center">|</th>
-          <th scope="col" class="text-center" v-for="inning in inningsArr" :key="inning">{{inning}}</th>
+          <th scope="col" class="text-center" v-for="inning in innings" :key="inning">{{inning}}</th>
           <th scope="col" class="text-center"></th>
           <th scope="col" class="text-center">打數</th>
           <th scope="col" class="text-center">安打</th>
@@ -46,12 +46,16 @@
           <td class="text-center" v-for="data in visitingPlayerDatas[player.CHName]" :key="data">
             <span>{{data}}</span>
           </td>
+          <td></td>
+          <td class="text-center" v-for="data in visitingBattingDatas[player.CHName]" :key="data">
+            <span>{{data}}</span>
+          </td>
         </tr>
       </tbody>
       <tfoot style="background-color:#FFED97;">
         <td>Total</td>
-        <td v-for="n in (inningsArr.length + 2)" :key="n"></td>
-        <td class="text-center fw-bold" v-for="data in totalVisitingDatas" :key="data">{{data}}</td>
+        <td v-for="n in (innings + 2)" :key="n"></td>
+        <td class="text-center fw-bold" v-for="(data, key) in totalVisitingDatas" :key="key">{{data}}</td>
         <td></td>
       </tfoot>
     </table>
@@ -61,7 +65,7 @@
         <tr>
           <th scope="col" class="text-center">{{gameInfo.homeTeam}}</th>
           <th scope="col" class="text-center">|</th>
-          <th scope="col" class="text-center" v-for="inning in inningsArr" :key="inning">{{inning}}</th>
+          <th scope="col" class="text-center" v-for="inning in innings" :key="inning">{{inning}}</th>
           <th scope="col" class="text-center"></th>
           <th scope="col" class="text-center">打數</th>
           <th scope="col" class="text-center">安打</th>
@@ -79,6 +83,10 @@
             {{player.CHName}}, {{player.DefendStationCode}}
           </th>
           <td class="text-center" v-for="data in homePlayerDatas[player.CHName]" :key="data">
+            <span>{{data}}</span>
+          </td>
+          <td></td>
+          <td class="text-center" v-for="data in homeBattingDatas[player.CHName]" :key="data">
             <span>{{data}}</span>
           </td>
         </tr>
@@ -116,12 +124,18 @@ export default {
   data() {
     return {
       isLoading: true,
+      playDatas: {
+        '1': {},
+        '2': {}
+      },
       visitingPlayerDatas: {},
       homePlayerDatas: {},
-      visitingFirstSno: [],
-      homeFirstSno: [],
+      visitingFirstSno: {},
+      homeFirstSno: {},
       nowTeam: this.gameInfo.visitingTeam,
-      inningsArr: []
+      innings: 0,
+      visitingBattingDatas: {},
+      homeBattingDatas: {}
     }
   },
   methods: {
@@ -136,12 +150,8 @@ export default {
         
         // 局數（ 9 ~ 12）
         const nowInning = data.data[data.data.length-1].InningSeq
-        if(nowInning <= 9) {
-          this.inningsArr = Array.from({length: 9}, (_, i) => i+1)
-        } else {
-          this.inningsArr = Array.from({length: nowInning}, (_, i) => i+1)
-        }
-
+        this.innings = nowInning <= 9 ? 9 : nowInning
+        
         // 整理資料
         const visitingPlayerDatas = {}
         const homePlayerDatas = {}
@@ -151,7 +161,7 @@ export default {
           if(!item.HitterName) return
           if(item.VisitingHomeType === '1') {
             if(!visitingPlayerDatas[item.HitterName]) {
-              const arr = Array.from({length: this.inningsArr.length + 1}).fill('')
+              const arr = Array.from({length: this.innings + 1}).fill('')
               arr[0] = '|'
               arr[item.InningSeq] = item.BattingActionName
               visitingPlayerDatas[item.HitterName] = arr
@@ -160,7 +170,7 @@ export default {
             }       
           } else {
             if(!homePlayerDatas[item.HitterName]) {
-              const arr = Array.from({length: this.inningsArr.length + 1}).fill('')
+              const arr = Array.from({length: this.innings + 1}).fill('')
               arr[0] = '|'
               arr[item.InningSeq] = item.BattingActionName
               homePlayerDatas[item.HitterName] = arr
@@ -187,65 +197,80 @@ export default {
         const { data } = await dataAPI.getData(gameInfos)
          
         // 戰況表 player
-        const visitingFirstSno = []
-        const homeFirstSno = []
+        const pushedLineUp = {'1': [], '2': []}
+        const visitingFirstSno = {}
+        const homeFirstSno = {}
         data.data.forEach(item => {
-          if(item.VisitingHomeType === '1' && item.Lineup !== 0) {
-            visitingFirstSno.push({
-              CHName: item.CHName,
-              Lineup: item.Lineup,
-              DefendStationCode: item.DefendStationCode,
-              PinchHitterRunner: item.PinchHitterRunner
-            })
-          } else if(item.VisitingHomeType === '2' && item.Lineup !== 0) {
-            homeFirstSno.push({
-              CHName: item.CHName,
-              Lineup: item.Lineup,
-              DefendStationCode: item.DefendStationCode,
-              PinchHitterRunner: item.PinchHitterRunner
-            })
+          if(item.Lineup === 0) { return }
+          if(item.VisitingHomeType === '1') {
+            // defendStationCode, lineup
+            let defendStationCode = item.DefendStationCode
+            let lineUp = item.Lineup
+            // 不是先發 或 先發換守備位置
+            if(pushedLineUp[item.VisitingHomeType].includes(item.Lineup)) {
+              // 代打 & 代跑
+              if(item.PinchHitterRunner === '代打') {
+                defendStationCode = '(PH)'
+              }
+              if(item.PinchHitterRunner === '代跑') {
+                defendStationCode = '(PR)'
+              }
+              if(item.PinchHitterRunner === '') {
+                defendStationCode = `(${defendStationCode})`
+              }
+              lineUp = 0
+            }
+            // 放入 visitingFirstSno
+            if(visitingFirstSno[item.CHName]) {
+              visitingFirstSno[item.CHName].DefendStationCode += `${defendStationCode}`
+            } else {
+              visitingFirstSno[item.CHName] = {
+                Lineup: lineUp,
+                CHName: item.CHName,
+                DefendStationCode: defendStationCode
+              }
+              if(lineUp === 0) { return }
+              pushedLineUp[item.VisitingHomeType].push(lineUp)
+            }
+          } else {
+            // defendStationCode, lineup
+            let defendStationCode = item.DefendStationCode
+            let lineUp = item.Lineup
+            // 不是先發 或 先發換守備位置
+            if(pushedLineUp[item.VisitingHomeType].includes(item.Lineup)) {
+              // 代打 & 代跑
+              if(item.PinchHitterRunner === '代打') {
+                defendStationCode = '(PH)'
+              }
+              if(item.PinchHitterRunner === '代跑') {
+                defendStationCode = '(PR)'
+              }
+              if(item.PinchHitterRunner === '') {
+                defendStationCode = `(${defendStationCode})`
+              }
+              lineUp = 0
+            }
+            // 放入 visitingFirstSno
+            if(homeFirstSno[item.CHName]) {
+              homeFirstSno[item.CHName].DefendStationCode += `${defendStationCode}`
+            } else {
+              homeFirstSno[item.CHName] = {
+                Lineup: lineUp,
+                CHName: item.CHName,
+                DefendStationCode: defendStationCode
+              }
+              if(lineUp === 0) { return }
+              pushedLineUp[item.VisitingHomeType].push(lineUp)
+            }
           }
         })
 
-        // 處理重複資料 & 代號
-        this.visitingFirstSno = this.listFirstSno(visitingFirstSno)
-        this.homeFirstSno = this.listFirstSno(homeFirstSno)
-        
+        this.visitingFirstSno = visitingFirstSno
+        this.homeFirstSno = homeFirstSno
+
       } catch (error) {
         console.error('error', error)
       }
-    },
-    listFirstSno(firstSno) {
-      const players = firstSno
-
-      for(let i = 0 ; i < players.length-1 ; i++) {
-        // 棒次重複: 有換人
-        if(players[i+1]) {
-          if(players[i].Lineup === players[i+1].Lineup) {
-            players[i+1].Lineup = 0
-            if(players[i+1].PinchHitterRunner === '代跑') {
-              players[i+1].DefendStationCode = '(PR)'
-            }
-            if(players[i+1].PinchHitterRunner === '代打') {
-              players[i+1].DefendStationCode = '(PH)'
-            }
-            if(players[i+1].PinchHitterRunner === '') {
-              players[i+1].DefendStationCode = `(${players[i+1].DefendStationCode})`
-            }
-          }
-        }
-        
-        // 名字重複: 沒換人
-        if(players[i].CHName === players[i+1].CHName) {
-          // 第二個重複的
-          if(players[i+1].DefendStationCode) {
-            players[i].DefendStationCode += `(${players[i+1].DefendStationCode})`
-          }
-          players.splice(i+1, 1)
-        }
-
-      }
-      return players
     },
     async fetchBattingJson(infos) {
       try {
@@ -256,13 +281,14 @@ export default {
 
         const { data } = await dataAPI.getData(gameInfos)
         
-        let visitingPlayerDatas = this.visitingPlayerDatas
-        let homePlayerDatas = this.homePlayerDatas
+        // let visitingPlayerDatas = this.visitingPlayerDatas
+        // let homePlayerDatas = this.homePlayerDatas
+        let visitingBattingDatas = {}
+        let homeBattingDatas = {}
         
         // 刪除重複的資料（網站 bug?）
         const players = [data['data'][0].HitterName]
         const playersData = [data['data'][0]]
-
         data['data'].forEach(item => {
           if(!players.includes(item.HitterName)) {
             players.push(item.HitterName)
@@ -274,46 +300,57 @@ export default {
           const avg = Math.round((item.TotalHittingCnt/item.TotalHitCnt).toFixed(3) * 1000) / 1000
 
           if(item.VisitingHomeType === '1') {
-            let dataArr = []
-            if(!visitingPlayerDatas[item.HitterName]) {
-              if(visitingPlayerDatas['*' + item.HitterName]) {
-                dataArr = visitingPlayerDatas['*' + item.HitterName]
-              } else if(visitingPlayerDatas['◎' + item.HitterName]){
-                dataArr = visitingPlayerDatas['◎' + item.HitterName]
-              } else {
-                const arr = Array.from({length: this.inningsArr.length + 1 }).fill('')
-                arr[0] = '|'
-                dataArr = arr
-              }
-            } else {
-              dataArr = visitingPlayerDatas[item.HitterName]
-            }
+            const dataArr = []
+            dataArr.push(item.HitCnt, item.HittingCnt, item.HomeRunCnt, item.RunBattedINCnt, item.ScoreCnt, avg.toFixed(3))
+            visitingBattingDatas[item.HitterName] = dataArr
 
-            dataArr.push('', item.HitCnt, item.HittingCnt, item.HomeRunCnt, item.RunBattedINCnt, item.ScoreCnt, avg.toFixed(3))
-            visitingPlayerDatas[item.HitterName] = dataArr
+            
+            // let dataArr = []
+            // if(!visitingPlayerDatas[item.HitterName]) {
+            //   if(visitingPlayerDatas['*' + item.HitterName]) {
+            //     dataArr = visitingPlayerDatas['*' + item.HitterName]
+            //   } else if(visitingPlayerDatas['◎' + item.HitterName]){
+            //     dataArr = visitingPlayerDatas['◎' + item.HitterName]
+            //   } else {
+            //     const arr = Array.from({length: this.innings + 1 }).fill('')
+            //     arr[0] = '|'
+            //     dataArr = arr
+            //   }
+            // } else {
+            //   dataArr = visitingPlayerDatas[item.HitterName]
+            // }
+
+            // dataArr.push('', item.HitCnt, item.HittingCnt, item.HomeRunCnt, item.RunBattedINCnt, item.ScoreCnt, avg.toFixed(3))
+            // visitingPlayerDatas[item.HitterName] = dataArr
           } else {
-            let dataArr = []
-            if(!homePlayerDatas[item.HitterName]) {
-              if(homePlayerDatas['*' + item.HitterName]) {
-                dataArr = homePlayerDatas['*' + item.HitterName]
-              } else if(homePlayerDatas['◎' + item.HitterName]){
-                dataArr = homePlayerDatas['◎' + item.HitterName]
-              } else {
-                const arr = Array.from({length: this.inningsArr.length + 1 }).fill('')
-                arr[0] = '|'
-                dataArr = arr
-              }
-            } else {
-              dataArr = homePlayerDatas[item.HitterName]
-            }
+            const dataArr = []
+            dataArr.push(item.HitCnt, item.HittingCnt, item.HomeRunCnt, item.RunBattedINCnt, item.ScoreCnt, avg.toFixed(3))
+            homeBattingDatas[item.HitterName] = dataArr
+            // let dataArr = []
+            // if(!homePlayerDatas[item.HitterName]) {
+            //   if(homePlayerDatas['*' + item.HitterName]) {
+            //     dataArr = homePlayerDatas['*' + item.HitterName]
+            //   } else if(homePlayerDatas['◎' + item.HitterName]){
+            //     dataArr = homePlayerDatas['◎' + item.HitterName]
+            //   } else {
+            //     const arr = Array.from({length: this.innings + 1 }).fill('')
+            //     arr[0] = '|'
+            //     dataArr = arr
+            //   }
+            // } else {
+            //   dataArr = homePlayerDatas[item.HitterName]
+            // }
 
-            dataArr.push('', item.HitCnt, item.HittingCnt, item.HomeRunCnt, item.RunBattedINCnt, item.ScoreCnt, avg.toFixed(3))
-            homePlayerDatas[item.HitterName] = dataArr
+            // dataArr.push('', item.HitCnt, item.HittingCnt, item.HomeRunCnt, item.RunBattedINCnt, item.ScoreCnt, avg.toFixed(3))
+            // homePlayerDatas[item.HitterName] = dataArr
           }
         })
 
-        this.visitingPlayerDatas = visitingPlayerDatas
-        this.homePlayerDatas = homePlayerDatas
+        // this.visitingPlayerDatas = visitingPlayerDatas
+        // this.homePlayerDatas = homePlayerDatas
+
+        this.visitingBattingDatas = visitingBattingDatas
+        this.homeBattingDatas = homeBattingDatas
 
       } catch (error) {
         console.error('error', error)
@@ -325,9 +362,9 @@ export default {
   },
   async created() {
     try {
-      await this.fetchLiveLog(this.$route.params)
+      this.fetchLiveLog(this.$route.params)
+      this.fetchBattingJson(this.$route.params)
       await this.fetchFirstSnoJson(this.$route.params)
-      await this.fetchBattingJson(this.$route.params)
       
       this.isLoading = false
 
@@ -340,7 +377,7 @@ export default {
   },
   computed: {
     totalVisitingDatas() {
-      const datas = this.visitingPlayerDatas
+      const datas = this.visitingBattingDatas
 
       let totalDatas = {
         totalHitCnt: 0,
@@ -350,16 +387,16 @@ export default {
         totalScoreCnt: 0
       }
       for(const key in datas) {
-        totalDatas.totalHitCnt += datas[key][datas[key].length-6]
-        totalDatas.totalHittingCnt += datas[key][datas[key].length-5]
-        totalDatas.totalHomeRunCnt += datas[key][datas[key].length-4]
-        totalDatas.totalRunBattedINCnt += datas[key][datas[key].length-3]
-        totalDatas.totalScoreCnt += datas[key][datas[key].length-2]
+        totalDatas.totalHitCnt += datas[key][0]
+        totalDatas.totalHittingCnt += datas[key][1]
+        totalDatas.totalHomeRunCnt += datas[key][2]
+        totalDatas.totalRunBattedINCnt += datas[key][3]
+        totalDatas.totalScoreCnt += datas[key][4]
       }
       return totalDatas
     },
     totalHomeDatas() {
-      const datas = this.homePlayerDatas
+      const datas = this.homeBattingDatas
 
       let totalDatas = {
         totalHitCnt: 0,
@@ -369,11 +406,11 @@ export default {
         totalScoreCnt: 0
       }
       for(const key in datas) {
-        totalDatas.totalHitCnt += datas[key][datas[key].length-6]
-        totalDatas.totalHittingCnt += datas[key][datas[key].length-5]
-        totalDatas.totalHomeRunCnt += datas[key][datas[key].length-4]
-        totalDatas.totalRunBattedINCnt += datas[key][datas[key].length-3]
-        totalDatas.totalScoreCnt += datas[key][datas[key].length-2]
+        totalDatas.totalHitCnt += datas[key][0]
+        totalDatas.totalHittingCnt += datas[key][1]
+        totalDatas.totalHomeRunCnt += datas[key][2]
+        totalDatas.totalRunBattedINCnt += datas[key][3]
+        totalDatas.totalScoreCnt += datas[key][4]
       }
       return totalDatas
     }

@@ -1,12 +1,60 @@
+<script setup>
+import { ref } from 'vue' 
+import { useRoute } from 'vue-router'
+import dataAPI from '../apis/data'
+import { teamBigPic } from '../utils/teamPicture'
+const route = useRoute()
+const emit = defineEmits(['loading-finished'])
+
+// props
+defineProps({
+  gameInfo: Object
+})
+
+// data
+const isLoading = ref(true)
+const lastLog = ref({})
+const teamImg = ref(teamBigPic)
+
+// methods
+const fetchLastLiveLog = async function(infos) {
+  try {
+    const gameInfos = {
+      ...infos,
+      dataType: 'LiveLogJson'
+    }
+
+    const { data } = await dataAPI.getData(gameInfos)
+    let log = data.data[data.data.length-1]
+    if(log.Content === '比賽結束') {
+      log = data.data[data.data.length-2]
+    }
+
+    lastLog.value = log
+    isLoading.value = false
+
+    // 傳到 Record 父元件
+    emit('loading-finished', 'NowDuel')
+
+  } catch(error) {
+    console.error('error', error)
+  }
+}
+
+// created
+fetchLastLiveLog(route.params)
+</script>
+
+
 <template>
   <div class="now-duel mb-5 row" v-if="!isLoading">
     <h1 class="text-center bg-primary">現在戰況</h1>
     <div class="d-flex justify-content-between row">
       <!-- 兩隊比分 -->
       <div class="d-flex justify-content-between flex-fill col-6">
-        <img alt="visiting-logo" :src="gameInfo.visitingPicture" width="100" height="100" class="m-auto">
+        <img alt="visiting-logo" :src="teamImg[gameInfo.visitingTeam]" width="100" height="100" class="m-auto">
         <h1 class="fw-bolder m-auto">{{lastLog.VisitingScore}}  :  {{lastLog.HomeScore}}</h1>
-        <img alt="home-logo" :src="gameInfo.homePicture" width="100" height="100" class="m-auto">
+        <img alt="home-logo" :src="teamImg[gameInfo.homeTeam]" width="100" height="100" class="m-auto">
       </div>
       <!-- 當前對決 -->
       <div class="ms-3 flex-fill col-4">
@@ -66,62 +114,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import dataAPI from '../apis/data'
-
-export default {
-  props: {
-    gameInfo: {
-      type: Object,
-      default: () => {
-        return {
-          visitingTeam: '',
-          homeTeam: '',
-          visitingPicture: '',
-          homePicture: '',
-          gameStatus: '',
-          gameSno: ''
-        }
-      }
-    }
-  },
-  data() {
-    return {
-      isLoading: true,
-      lastLog: {}
-    }
-  },
-  methods: {
-    async fetchLastLiveLog(infos) {
-      try {
-        const gameInfos = {
-          ...infos,
-          dataType: 'LiveLogJson'
-        }
-
-        const { data } = await dataAPI.getData(gameInfos)
-        let lastLog = data.data[data.data.length-1]
-        if(lastLog.Content === '比賽結束') {
-          lastLog = data.data[data.data.length-2]
-        }
-
-        this.lastLog = lastLog
-
-      } catch(error) {
-        console.error('error', error)
-      }
-    }
-  },
-  async created() {
-    try {
-      await this.fetchLastLiveLog(this.$route.params)
-      this.isLoading = false
-      // 傳到 Record 父元件
-      this.$emit('loading-finished', 'NowDuel')
-    } catch (error) {
-      console.error('error', error)
-    }
-  }
-}
-</script>

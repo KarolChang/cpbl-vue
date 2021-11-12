@@ -1,3 +1,67 @@
+<script setup>
+import { ref } from 'vue' 
+import { useRoute } from 'vue-router'
+import dataAPI from '../apis/data'
+const route = useRoute()
+const emit = defineEmits(['loading-finished'])
+
+// data
+const isLoading = ref(true)
+const mvpInfo = ref({})
+
+// methods
+const fetchAfterGameInfo = async function(infos) {
+  try {
+    const gameInfos = {
+      ...infos,
+      dataType: 'CurtGameDetailJson'
+    }
+
+    const { data } = await dataAPI.getData(gameInfos)
+    
+    // 處理比賽時間
+    // let gameDuringTime = data.data.GameDuringTime
+    // gameDuringTime = `${gameDuringTime[1]}小時${gameDuringTime[2]}${gameDuringTime[3]}分鐘`
+
+    // this.afterGameInfo = {
+    //   AudienceCnt: data.data.AudienceCnt,
+    //   Briefing: data.data.Briefing,
+    //   FieldAbbe: data.data.FieldAbbe,
+    //   GameDuringTime: gameDuringTime
+    // }
+
+    mvpInfo.value = {
+      MvpCnt: data.data.MvpCnt,
+      // 打者
+      HitterName: data.data.HitterName,
+      HittingCnt: data.data.HittingCnt,
+      RunBattedInCnt: data.data.RunBattedInCnt,
+      ScoreCnt: data.data.ScoreCnt,
+      HitCnt: data.data.HitCnt,
+      HomeRunCnt: data.data.HomeRunCnt,
+      // 投手
+      PitcherName: data.data.PitcherName,
+      InningPitchedCnt: data.data.InningPitchedCnt,
+      InningPitchedDiv3Cnt: data.data.InningPitchedDiv3Cnt,
+      StrikeOutCnt: data.data.StrikeOutCnt,
+      RunCnt: data.data.RunCnt
+    }
+
+    isLoading.value = false
+
+    // 傳到 Record 父元件
+    emit('loading-finished', 'Mvp')
+
+  } catch(error) {
+    console.error('error', error)
+  }  
+}
+
+// created
+fetchAfterGameInfo(route.params)
+</script>
+
+
 <template>
   <div class="mvp mb-5" v-if="!isLoading">
     <h1 class="text-center bg-primary">MVP</h1>
@@ -11,7 +75,7 @@
         </div>
         <div class="d-flex justify-content-between border-bottom mb-2">
           <div>投球局數</div>
-          <div v-if="mvpInfo.InningPitchedDiv3Cnt">{{mvpInfo.InningPitchedCnt + mvpInfo.InningPitchedDiv3Cnt + '/3'}}</div>
+          <div v-if="mvpInfo.InningPitchedDiv3Cnt">{{mvpInfo.InningPitchedCnt}} {{mvpInfo.InningPitchedDiv3Cnt + '/3'}}</div>
           <div v-else>{{mvpInfo.InningPitchedCnt}}</div>
         </div>
         <div class="d-flex justify-content-between border-bottom mb-2">
@@ -64,70 +128,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import dataAPI from '../apis/data'
-
-export default {
-  name: 'Mvp',
-  data() {
-    return {
-      isLoading: true,
-      mvpInfo: {},
-      // afterGameInfo: {}
-    }
-  },
-  methods: {
-    async fetchAfterGameInfo(infos) {
-      try {
-        const gameInfos = {
-          ...infos,
-          dataType: 'CurtGameDetailJson'
-        }
-
-        const { data } = await dataAPI.getData(gameInfos)
-        
-        // 處理比賽時間
-        // let gameDuringTime = data.data.GameDuringTime
-        // gameDuringTime = `${gameDuringTime[1]}小時${gameDuringTime[2]}${gameDuringTime[3]}分鐘`
-
-        // this.afterGameInfo = {
-        //   AudienceCnt: data.data.AudienceCnt,
-        //   Briefing: data.data.Briefing,
-        //   FieldAbbe: data.data.FieldAbbe,
-        //   GameDuringTime: gameDuringTime
-        // }
-
-        this.mvpInfo = {
-          MvpCnt: data.data.MvpCnt,
-          // 打者
-          HitterName: data.data.HitterName,
-          HittingCnt: data.data.HittingCnt,
-          RunBattedInCnt: data.data.RunBattedInCnt,
-          ScoreCnt: data.data.ScoreCnt,
-          HitCnt: data.data.HitCnt,
-          HomeRunCnt: data.data.HomeRunCnt,
-          // 投手
-          PitcherName: data.data.PitcherName,
-          InningPitchedCnt: data.data.InningPitchedCnt,
-          InningPitchedDiv3Cnt: data.data.InningPitchedDiv3Cnt,
-          StrikeOutCnt: data.data.StrikeOutCnt,
-          RunCnt: data.data.RunCnt
-        }
-      } catch(error) {
-        console.error('error', error)
-      }
-    }
-  },
-  async created() {
-    try {
-      await this.fetchAfterGameInfo(this.$route.params)
-      this.isLoading = false
-      // 傳到 Record 父元件
-      this.$emit('loading-finished', 'Mvp')
-    } catch (error) {
-      console.error('error', error)
-    }
-  }
-}
-</script>

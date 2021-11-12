@@ -1,3 +1,53 @@
+<script setup>
+import { ref } from 'vue' 
+import { useRoute } from 'vue-router'
+import dataAPI from '../apis/data'
+const emit = defineEmits(['loading-finished'])
+const route = useRoute()
+
+// data
+const isLoading = ref(true)
+const visitingFirstSno = ref([])
+const homeFirstSno = ref([])
+
+// methods
+const fetchGameStatus = async function(infos) {
+  try {
+    const gameInfos = {
+      ...infos,
+      dataType: 'CurtGameDetailJson'
+    }
+
+    const { data } = await dataAPI.getData(gameInfos)
+
+    const visitingFirst = []
+    const homeFirst = []
+
+    data.data.FirstSnos.forEach(player => {
+      if(player.VisitingHomeType === '1') {
+        visitingFirst[player.Lineup - 1] = player
+      }
+      if(player.VisitingHomeType === '2') {
+        homeFirst[player.Lineup - 1] = player
+      }
+    })
+
+    visitingFirstSno.value = visitingFirst
+    homeFirstSno.value = homeFirst
+    
+    isLoading.value = false
+    // 傳到 Record 父元件
+    emit('loading-finished', 'FirstSnos')
+
+  } catch(error) {
+    console.error('error', error)
+  }
+}
+
+// created
+fetchGameStatus(route.params)
+</script>
+
 <template>
   <div class="first-snos mb-5" v-if="!isLoading">
     <h1 class="text-center bg-success mb-3">先發打序</h1>
@@ -37,54 +87,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import dataAPI from '../apis/data'
-
-export default {
-  name: 'FirstSnos',
-  data() {
-    return {
-      isLoading: true,
-      visitingFirstSno: [],
-      homeFirstSno: []
-    }
-  },
-  methods: {
-    async fetchGameStatus(infos) {
-      try {
-        const gameInfos = {
-          ...infos,
-          dataType: 'CurtGameDetailJson'
-        }
-
-        const { data } = await dataAPI.getData(gameInfos)
-
-        const visitingFirstSno = []
-        const homeFirstSno = []
-
-        data.data.FirstSnos.forEach(player => {
-          if(player.VisitingHomeType === '1') {
-            visitingFirstSno[player.Lineup - 1] = player
-          }
-          if(player.VisitingHomeType === '2') {
-            homeFirstSno[player.Lineup - 1] = player
-          }
-        })
-
-        this.visitingFirstSno = visitingFirstSno
-        this.homeFirstSno = homeFirstSno
-
-      } catch(error) {
-        console.error('error', error)
-      }
-    }
-  },
-  created() {
-    this.fetchGameStatus(this.$route.params)
-    this.isLoading = false
-    // 傳到 Record 父元件
-    this.$emit('loading-finished', 'FirstSnos')
-  }
-}
-</script>
