@@ -44,9 +44,8 @@ fetchStandings()
         <thead class="table-dark">
           <tr>
             <th scope="col" class="text-center">排名</th>
-            <th scope="col" class="text-center"></th>
+            <th scope="col" class="text-center com-ui"></th>
             <th scope="col" class="text-center">球隊</th>
-            <th scope="col" class="text-center">｜</th>
             <th scope="col" class="text-center">出賽數</th>
             <th scope="col" class="text-center">勝-和-敗</th>
             <th scope="col" class="text-center">勝率</th>
@@ -55,12 +54,11 @@ fetchStandings()
         </thead>
         <tbody>
           <tr v-for="item in standing" :key="item.team">
-            <th scope="row" class="text-center">{{item.rank}}</th>
+            <td scope="row" class="text-center rank">{{item.rank}}</td>
             <td class="text-center">
               <img :src="teamSmallPic[item.team]" alt="small-logo" width="30" height="30">
             </td>
-            <td class="text-center">{{item.team}}</td>
-            <td class="text-center">｜</td>
+            <td class="text-center com-ui">{{item.team}}</td>
             <td v-for="data in item.allData" :key="data" class="text-center">{{data}}</td>
           </tr>
         </tbody>
@@ -68,3 +66,28 @@ fetchStandings()
     </template>
   </div>
 </template>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=Salsa&display=swap');
+@media screen and (max-width: 500px) {
+  th {
+    font-size: 0.5em;
+  }
+
+  td[class~="team"] {
+    display: none;
+  }
+
+  .com-ui {
+    display: none;
+  }
+
+  .rank {
+    font-family: 'Chakra Petch', sans-serif;
+  }
+
+  td {
+    font-family: 'Salsa', sans-serif;
+  }
+}
+</style>

@@ -80,12 +80,36 @@ fetchScoreBoard(route.params)
 <template>
   <div class="score-board mb-3" v-if="!isLoading">
     <!-- 計分板 -->
-    <h1 class="text-center bg-primary">計分板</h1>
-    <div class="mx-auto">
-      <table class="table">
+    <header class="mb-3">
+      <span class="fs-3 text-primary">計分板</span>
+      <hr style="margin-top:0.5em;color:steelblue;" size="3">
+    </header>
+    <div class="d-flex justify-content-center">
+      <table class="table locked">
         <thead>
           <tr class="table-info">
             <th scope="col">#{{gameInfo.gameSno}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-dark">
+            <th scope="row" class="com">{{gameInfo.visitingTeam}}</th>
+            <th scope="row" class="mobile" style="padding:5px;">
+              <img :src="gameInfo.visitingSmallPic" alt="visiting-logo" width="25" height="25">
+            </th>
+          </tr>
+          <tr class="table-dark">
+            <th scope="row" class="com">{{gameInfo.homeTeam}}</th>
+            <th scope="row" class="mobile" style="padding:5px;">
+              <img :src="gameInfo.homeSmallPic" alt="home-logo" width="25" height="25">
+            </th>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="table movable">
+        <thead>
+          <tr class="table-info">
             <th scope="col" v-for="inning in (boardInfo['1'].length-3)" :key="inning">{{inning}}</th>
             <th scope="col">R</th>
             <th scope="col">H</th>
@@ -93,9 +117,7 @@ fetchScoreBoard(route.params)
           </tr>
         </thead>
         <tbody>
-          <tr class="table-dark" id="visiting-score" v-for="(scores, key) in boardInfo" :key="scores">
-            <th scope="row" v-if="key === '1'" class="team">{{gameInfo.visitingTeam}}</th>
-            <th scope="row" v-else class="team">{{gameInfo.homeTeam}}</th>
+          <tr class="table-dark" id="visiting-score" v-for="scores in boardInfo" :key="scores">
             <td v-for="score in scores" :key="score">{{score}}</td>    
           </tr>
         </tbody>
@@ -105,18 +127,37 @@ fetchScoreBoard(route.params)
 </template>
 
 <style scoped>
-table {
-  display: block;
-  width: 200px;
-  overflow: auto;
-  min-width: 100%;
-}
 th, td {
   text-align: center;
   min-width: 50px;
   white-space: pre;
 }
-.team {
-  min-width: 100px;
+
+@media screen and (max-width: 500px) {
+  table[class~="locked"] {
+    min-width: 20%;
+  }
+  table[class~="movable"] {
+    display: block;
+    overflow: auto;
+    min-width: 70%;
+  }
+  th[class~="com"] {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 500px) {
+  table[class~="locked"] {
+    min-width: 10%;
+  }
+  table[class~="movable"] {
+    display: block;
+    overflow: auto;
+    min-width: 70%;
+  }
+  th[class~="mobile"] {
+    display: none;
+  }
 }
 </style>

@@ -89,7 +89,7 @@ showView()
 
 <template>
   <div class="loading text-center mt-3" v-show="!loadingFinished">
-    <img class="rounded" src="../assets/puipui2.gif" alt="loading..." v-show="!loadingFinished">
+    <img class="rounded" src="../assets/puipui2.gif" alt="loading..." v-show="!loadingFinished" width="400">
   </div>
 
   <div class="record m-3" v-show="loadingFinished">

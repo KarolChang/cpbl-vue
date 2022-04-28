@@ -12,11 +12,19 @@
 </template>
 
 <style scoped>
-
 img:hover {
   content: url('https://p3.itc.cn/q_70/images03/20210128/799a5a15d69b4d63bee68e63c4178b29.gif');
   width: 700px;
   height: 400px;
 }
+
+@media screen and (max-width: 500px) {
+  img:hover {
+  content: url('https://p3.itc.cn/q_70/images03/20210128/799a5a15d69b4d63bee68e63c4178b29.gif');
+  width: 350px;
+  height: 200px;
+}
+}
+
   
 </style>

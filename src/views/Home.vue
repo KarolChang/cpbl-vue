@@ -21,8 +21,23 @@ const fetchTodayGame = async function(infos) {
     isLoading.value = true
 
     const { data } = await dataAPI.getTodayGame(infos)
+    
+    // 一軍總冠軍賽
+    let gameData = null
+    if(data.GameDetailJson) {
+      const date = new Date(nowDate.value).toDateString()
+      data.GameDetailJson.forEach(game => {
+        const gameDate = new Date(game.GameDate).toDateString()
+        if(date === gameDate) {
+          gameData = [game]
+        }
+      })
+    }
 
-    todayGames.value = data.data
+    todayGames.value = {
+      '一軍': data.GameADetailJson === null ? gameData : data.GameADetailJson,
+      '二軍': data.GameDDetailJson
+    }
 
     isLoading.value = false
 
@@ -109,19 +124,24 @@ fetchTodayGame({ gameDate: nowDate.value })
         <a @click.prevent="changeNowDate('-'); fetchTodayGame({gameDate: nowDate})">
           <i class="fas fa-arrow-circle-left fa-3x text-warning"></i>
         </a>
-        <h2 class="text-center my-auto m-4">{{nowDateWithWeek}}</h2>
+        <h3 class="text-center my-auto m-4">{{nowDateWithWeek}}</h3>
         <a @click.prevent="changeNowDate('+'); fetchTodayGame({gameDate: nowDate})">
           <i class="fas fa-arrow-circle-right fa-3x text-warning"></i>
         </a>
       </div>
     </div>
-
     <div class="row align-items-md-stretch">
-      <div class="col-md-6 mb-2" v-for="game in todayGames[level]" :key="game.GameSno">
-        <div class="h-100 p-4 bg-light border rounded-3">
+      <div class="col-12 col-md-6 mb-2" v-for="game in todayGames[level]" :key="game.GameSno">
+        <div class="p-4 mb-3 bg-light border rounded-3">
           <div class="row">
-            <div class="col-3 my-auto">
-              <div class="bg-primary text-white text-center mx-4" style="border-radius:8%;">{{game.GameSno}}</div>
+            <div class="col-4 col-sm-3 my-auto">
+              <div class="text-center mb-1">
+                <span class="border border-primary bg-primary text-white p-1" style="border-radius:12%;" v-if="game.KindCode === 'A' || game.KindCode === 'D'">{{game.GameSno}}</span>
+                <span class="border border-primary bg-primary text-white p-1" style="border-radius:12%;" v-if="game.KindCode === 'B'">明星賽G{{game.GameSno}}</span>
+                <span class="border border-primary bg-primary text-white p-1" style="border-radius:12%;" v-if="game.KindCode === 'C' || game.KindCode === 'F'">冠軍賽G{{game.GameSno}}</span>
+                <span class="border border-primary bg-primary text-white p-1" style="border-radius:12%;" v-if="game.KindCode === 'E'">挑戰賽G{{game.GameSno}}</span>
+                <span class="border border-primary bg-primary text-white p-1" style="border-radius:12%;" v-if="game.KindCode === 'G'">熱身賽G{{game.GameSno}}</span>
+              </div>
               <div class="text-center fw-bold fs-5">{{game.FieldAbbe}}</div>
               <div v-if="game.GameStatus === 1" class="text-center fw-bold fs-5">{{showTime(game.PreExeDate)}}</div>
 
@@ -131,20 +151,20 @@ fetchTodayGame({ gameDate: nowDate.value })
               <div v-else-if="game.GameStatus === 5" class="text-center fw-bold fs-5 bg-secondary text-warning">取消比賽</div>
               <div v-else-if="game.GameStatus === 6" class="text-center fw-bold fs-5 bg-dark text-danger">延賽</div>
             </div>
-            <div class="col-3 text-center">
-              <img :src="baseUrl + game.VisitingClubBigImgPath" alt="v-pic" width="100" height="100">
+            <div class="col-2 col-sm-3 text-center">
+              <img :src="baseUrl + game.VisitingClubBigImgPath" alt="v-pic" width="100" height="100" class="logo">
             </div>
 
-            <div class="col-3 text-center fw-bold fs-2 mt-4" v-if="game.GameStatus === 2">
+            <div class="col-3 text-center fw-bold fs-2 mt-4 ms-3" v-if="game.GameStatus === 2">
               {{game.CurtBatting.VisitingScore}} : {{game.CurtBatting.HomeScore}}
             </div>
-            <div class="col-3 text-center fw-bold fs-2 mt-4" v-else-if="game.GameStatus === 3">
+            <div class="col-3 text-center fw-bold fs-2 mt-4 ms-3" v-else-if="game.GameStatus === 3">
               {{game.VisitingScore}} : {{game.HomeScore}}
             </div>
-            <div class="col-3 text-center fw-bold fs-4 mt-5" v-else>vs.</div>
+            <div class="col-3 text-center fw-bold fs-4 mt-5 vs" v-else>vs.</div>
 
-            <div class="col-3 text-center">
-              <img :src="baseUrl + game.HomeClubBigImgPath" alt="h-pic" width="100" height="100">
+            <div class="col-2 col-sm-3 text-center align-text-bottom">
+              <img :src="baseUrl + game.HomeClubBigImgPath" alt="h-pic" width="100" height="100" class="logo">
             </div>
           </div>
           <hr>
@@ -216,7 +236,7 @@ fetchTodayGame({ gameDate: nowDate.value })
             <div class="col-4 my-auto text-center">
               <router-link
                 :to="{ name: 'Record', params: { gameSno: game.GameSno, kindCode: game.KindCode, year: game.Year }}" class="text-decoration-none text-white">
-                <button class="btn btn-outline-warning" type="button">詳細賽況</button>
+                <button class="btn btn-outline-warning" type="button" style="font-size:0.9em;">詳細賽況</button>
               </router-link>
             </div>
             <div class="d-flex mt-3 bg-white justify-content-center" v-if="game.CurtBatting">
@@ -277,9 +297,9 @@ fetchTodayGame({ gameDate: nowDate.value })
     </div>
 
     <div class="p-3 mt-4 bg-light rounded-3" v-if="!todayGames[level]">
-      <div class="container-fluid">
-        <h3 class="display-5 fw-bold text-center">今日無賽事 只好烏波鳥波叫</h3>
-        <img class="rounded mx-auto d-block pt-2" src="https://imgur.dcard.tw/WKc9cNt.gif" alt="wopo">
+      <div>
+        <h3 class="display-5 fw-bold text-center">今日無賽事</h3>
+        <img class="rounded mx-auto d-block pt-2" src="https://imgur.dcard.tw/WKc9cNt.gif" alt="woopo" width="330">
       </div>
     </div>
   </div>
@@ -295,9 +315,14 @@ fetchTodayGame({ gameDate: nowDate.value })
   color: orange;
 }
 
-/* @media screen and (max-width: 500px) {
-  #logo-big {
-    display: none;
+@media screen and (max-width: 500px) {
+  img[class~="logo"] {
+    width: 60px;
+    height: 60px;
+    margin-top: 0.5em;
   }
-} */
+  div[class~="vs"] {
+    text-align-last: end;
+  }
+}
 </style>

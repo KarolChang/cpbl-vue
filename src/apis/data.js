@@ -21,5 +21,8 @@ export default {
   },
   getPlayersId() {
     return apiHelper.get(`/players/data`)
+  },
+  getPlayerTrans({ year, month }) {
+    return apiHelper.get(`/playertrans/${year}/${month}`)
   }
 }

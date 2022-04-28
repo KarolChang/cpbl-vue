@@ -21,7 +21,7 @@ const codes = ref({
   'G': '一軍熱身賽'
 })
 
-const years = ref(Array.from({length: 5}, (_, i) => new Date().getYear()+1900-i))
+const years = ref(Array.from({length: 5}, (_, i) => new Date().getFullYear()-i))
 const months = ref(Array.from({length: 12}, (_, i) => i+1))
 const baseUrl = ref('https://www.cpbl.com.tw')
 
@@ -77,9 +77,9 @@ const changeNowYearMonth = function(op) {
   }
 }
 
-const toDate = function(date) {
-  return new Date(date)
-}
+// const toDate = function(date) {
+//   return new Date(date)
+// }
 
 // created
 const showView = async function() {
@@ -110,25 +110,25 @@ watch(kindCode, async() => {
 
 <template>
   <div class="text-center mt-3" v-if="isLoading">
-    <img class="rounded" src="../assets/capo-loading.gif" alt="loading...">
+    <img class="rounded" src="../assets/capo-loading.gif" alt="loading..." width="360">
   </div>   
   <div class="schedule m-3" v-else>
     <header class="pb-3 mb-4 border-bottom">
       <span class="fs-3">賽程</span>
     </header>
     <!-- 年份＆月份 -->
-    <div class="row justify-content-around my-4 mb-3">
-      <div class="col-4">
+    <div class="d-flex justify-content-around my-4 mb-3">
+      <div>
         <select class="form-select" v-model="kindCode">
           <option v-for="(code, key) in codes" :key="key" :value="key" selected>{{code}}</option>
         </select>
       </div>
-      <div class="col-4">
+      <div>
         <select class="form-select" v-model.lazy="nowYear">
           <option v-for="year in years" :key="year" :value="year">{{year}}年</option>
         </select>
       </div>
-      <div class="col-4">
+      <div>
         <select class="form-select" v-model.lazy="nowMonth">
           <option v-for="month in months" :key="month" :value="month">{{month}}月</option>
         </select>
@@ -157,15 +157,15 @@ watch(kindCode, async() => {
           <th scope="col" class="text-center">日期</th>
           <th scope="col" class="text-center">場次</th>
           <th scope="col" class="text-center">對戰組合</th>
-          <th scope="col" class="text-center">場地  /  時間</th>
-          <th scope="col" class="text-center">比賽狀態</th>
+          <th scope="col" class="text-center">場地/時間</th>
+          <!-- <th scope="col" class="text-center">比賽狀態</th> -->
         </tr>
       </thead>
       <tbody>
         <tr v-for="game in filteredGames" :key="game.GameSno" :class="game.GameResult === '0' ? 'table-secondary' : 'table-warning'">
-          <th scope="row" class="text-center">{{showDate(game.PreExeDate)}} 
+          <th scope="row" class="text-center date">{{showDate(game.PreExeDate)}} 
           </th>
-          <td class="text-center">
+          <td class="text-center align-middle">
             <router-link 
               :to="{ name: 'Record', params: { gameSno: game.GameSno, kindCode: game.KindCode, year: game.Year }}">
               {{game.GameSno}}
@@ -173,18 +173,18 @@ watch(kindCode, async() => {
           </td>
           <!-- 比賽尚未結束 -->
           <template v-if="game.GameResult === '0'">
-            <td> 
+            <td class="align-middle px-3"> 
               <div class="row">
-                <div class="col-5 text-end">
+                <div class="col-3 col-sm-5 text-end">
                   <img :src="baseUrl + game.VisitingClubSmallImgPath" alt="visiting-logo" width="25" height="25">
-                  {{game.VisitingTeamName}}
+                  <span class="team-name">{{game.VisitingTeamName}}</span>
                 </div>
-                <div class="col-2 text-center">
+                <div class="col-6 col-sm-2 text-center">
                   <span class="fw-bolder fs-5">{{game.VisitingScore}}</span> :  
                   <span class="fw-bolder fs-5">{{game.HomeScore}}</span>
                 </div>
-                <div class="col-5">
-                  {{game.HomeTeamName}}
+                <div class="col-3 col-sm-5">
+                  <span class="team-name">{{game.HomeTeamName}}</span>
                   <img :src="baseUrl + game.HomeClubSmallImgPath" alt="home-logo" width="25" height="25">
                 </div>
               </div>
@@ -192,34 +192,63 @@ watch(kindCode, async() => {
           </template>
           <!-- 比賽結束 -->
           <template v-else>
-            <td> 
+            <td class="align-middle px-3">   
               <div class="row">
-                <div class="col-5 text-end">
+                <div class="col-3 col-sm-5 text-end">
                   <img :src="baseUrl + game.VisitingClubSmallImgPath" alt="visiting-logo" width="25" height="25">
-                  {{game.VisitingTeamName}}
+                  <span class="team-name">{{game.VisitingTeamName}}</span>
                 </div>
-                <div class="col-2 text-center">VS.</div>
-                <div class="col-5">
-                  {{game.HomeTeamName}}
+                <div class="col-6 col-sm-2 text-center vs">VS.</div>
+                <div class="col-3 col-sm-5">
+                  <span class="team-name">{{game.HomeTeamName}}</span>
                   <img :src="baseUrl + game.HomeClubSmallImgPath" alt="home-logo" width="25" height="25">
                 </div>
               </div>
             </td>
           </template>
-          <td>
+          <th class="area-time">
             <div class="row">
-              <div class="col-6 text-end">{{game.FieldAbbe}}</div>
-              <div class="col-6">{{showTime(game.PreExeDate)}}</div>
+              <div class="col-12 col-sm-6 text-end area-time">{{game.FieldAbbe}}</div>
+              <div class="col-12 col-sm-6 area-time">{{showTime(game.PreExeDate)}}</div>
             </div>
-          </td>
-          <td class="text-center text-danger" v-if="game.GameResult === '' && new Date() >= toDate(game.GameDateTimeS) ">比賽中</td>
+          </th>
+          <!-- <td class="text-center text-danger" v-if="game.GameResult === '' && new Date() >= toDate(game.GameDateTimeS) ">比賽中</td>
           <td class="text-center" v-else-if="game.GameResult === ''">未開賽</td>
           <td class="text-center text-primary" v-else-if="game.GameResult === '0'">比賽結束</td>
           <td class="text-center text-danger" v-else-if="game.GameResult === '1'">延賽</td>
           <td class="text-center text-danger" v-else-if="game.GameResult === '2'">比賽保留</td>
-          <td class="text-center text-danger" v-else-if="game.GameResult === '4'">比賽暫停中</td>
+          <td class="text-center text-danger" v-else-if="game.GameResult === '4'">比賽暫停中</td> -->
         </tr>
       </tbody>
     </table>
   </div>
 </template>
+
+<style scoped>
+@media screen and (max-width: 500px) {
+  span[class~="team-name"] {
+    display: none;
+  }
+
+  div[class~="area-time"] {
+    text-align-last: center;
+  }
+
+  th {
+    font-size: small;
+  }
+
+  div[class~="vs"] {
+    font-size: 0.5em;
+    margin-top: 1em;
+  }
+
+  th[class~="date"] {
+    width: 60px;
+  }
+
+  th[class~="area-time"] {
+    width: 80px;
+  }
+}
+</style>

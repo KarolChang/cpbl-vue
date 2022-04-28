@@ -47,17 +47,20 @@ fetchLastLiveLog(route.params)
 
 
 <template>
-  <div class="now-duel mb-5 row" v-if="!isLoading">
-    <h1 class="text-center bg-primary">現在戰況</h1>
+  <div class="now-duel mb-3 row" v-if="!isLoading">
+    <header class="mb-3">
+      <span class="fs-3 text-primary">現在戰況</span>
+      <hr style="margin-top:0.8em;color:steelblue;" size="3">
+    </header>
     <div class="d-flex justify-content-between row">
       <!-- 兩隊比分 -->
-      <div class="d-flex justify-content-between flex-fill col-6">
+      <div class="d-flex justify-content-between flex-fill col-12 col-sm-4 mb-3">
         <img alt="visiting-logo" :src="teamImg[gameInfo.visitingTeam]" width="100" height="100" class="m-auto">
         <h1 class="fw-bolder m-auto">{{lastLog.VisitingScore}}  :  {{lastLog.HomeScore}}</h1>
         <img alt="home-logo" :src="teamImg[gameInfo.homeTeam]" width="100" height="100" class="m-auto">
       </div>
       <!-- 當前對決 -->
-      <div class="ms-3 flex-fill col-4">
+      <div class="ms-3 flex-fill col-12 col-sm-6 mt-3">
         <p>
           <span class="bg-info rounded-pill d-inline-block p-2">P {{lastLog.PitcherName}}</span> vs  
           <span class="bg-success rounded-pill d-inline-block p-2 text-light">H {{lastLog.HitterName}}</span>

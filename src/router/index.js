@@ -27,6 +27,11 @@ const routes = [
     component: () => import('../views/SingleData.vue')
   },
   {
+    path: '/player',
+    name: 'Player',
+    component: () => import('../views/Player.vue')
+  },
+  {
     path: '/jianmiau',
     name: 'JianMiau',
     component: () => import('../views/JianMiau.vue')

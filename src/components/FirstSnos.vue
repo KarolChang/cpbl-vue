@@ -50,30 +50,29 @@ fetchGameStatus(route.params)
 
 <template>
   <div class="first-snos mb-5" v-if="!isLoading">
-    <h1 class="text-center bg-success mb-3">先發打序</h1>
-    <div class="d-flex">
-      <table class="table table-striped table-bordered m-5">
+    <div class="row p-3">
+      <table class="col-12 col-sm-6 table table-striped table-bordered mb-4">
         <thead>
           <tr>
-            <th scope="col" class="text-center">先發棒次</th>
-            <th scope="col" class="text-center">先發位置</th>
-            <th scope="col" class="text-center">先發球員</th>
+            <th scope="col" class="text-center">棒次</th>
+            <th scope="col" class="text-center">位置</th>
+            <th scope="col" class="text-center">球員</th>
           </tr>
         </thead>
-          <tbody>
-            <tr v-for="player in visitingFirstSno" :key="player.Lineup">
-              <th scope="row" class="text-center">{{player.Lineup}}</th>
-              <td class="text-center">{{player.DefendStationCode}}</td>
-              <td class="text-center">{{player.CHName}}</td>
-            </tr>
-          </tbody>
-        </table>
-      <table class="table table-striped table-bordered table-dark m-5">
+        <tbody>
+          <tr v-for="player in visitingFirstSno" :key="player.Lineup">
+            <th scope="row" class="text-center">{{player.Lineup}}</th>
+            <td class="text-center">{{player.DefendStationCode}}</td>
+            <td class="text-center">{{player.CHName}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="col-12 col-sm-6 table table-striped table-bordered table-dark">
         <thead>
           <tr>
-            <th scope="col" class="text-center">先發棒次</th>
-            <th scope="col" class="text-center">先發位置</th>
-            <th scope="col" class="text-center">先發球員</th>
+            <th scope="col" class="text-center">棒次</th>
+            <th scope="col" class="text-center">位置</th>
+            <th scope="col" class="text-center">球員</th>
           </tr>
         </thead>
         <tbody>
